@@ -5,7 +5,8 @@ import mmcv
 import numpy as np
 from torch.utils.data import Dataset
 
-from mmcls.models.losses import accuracy, f1_score, precision, recall
+from mmcls.core.evaluation import f1_score, precision, recall, support
+from mmcls.models.losses import accuracy
 from .pipelines import Compose
 
 
@@ -36,13 +37,13 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
         self.data_prefix = data_prefix
         self.test_mode = test_mode
         self.pipeline = Compose(pipeline)
-        self.data_infos = self.load_annotations()
         self.CLASSES = self.get_classes(classes)
+        self.data_infos = self.load_annotations()
         self.weight = self.get_weight()
-        
 
     def get_weight(self):
         pass
+        
 
     @abstractmethod
     def load_annotations(self):
@@ -127,6 +128,8 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
             results (list): Testing results of the dataset.
             metric (str | list[str]): Metrics to be evaluated.
                 Default value is `accuracy`.
+            metric_options (dict): Options for calculating metrics. Allowed
+                keys are 'topk' and 'average'.
             logger (logging.Logger | None | str): Logger used for printing
                 related information during evaluation. Default: None.
         Returns:
@@ -139,33 +142,44 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
                 metrics = [metric]
         else:
             metrics = metric
-        allowed_metrics = ['accuracy', 'precision', 'recall', 'f1_score']
+        allowed_metrics = [
+            'accuracy', 'precision', 'recall', 'f1_score', 'support'
+        ]
         eval_results = {}
+        results = np.vstack(results)
+        gt_labels = self.get_gt_labels()
+        num_imgs = len(results)
+        assert len(gt_labels) == num_imgs
         for metric in metrics:
             if metric not in allowed_metrics:
                 raise KeyError(f'metric {metric} is not supported.')
-            results = np.vstack(results)
-            gt_labels = self.get_gt_labels()
-            num_imgs = len(results)
-            assert len(gt_labels) == num_imgs
             if metric == 'accuracy':
                 topk = metric_options.get('topk')
                 acc = accuracy(results, gt_labels, topk)
                 eval_result = {f'top-{k}': a.item() for k, a in zip(topk, acc)}
             elif metric == 'precision':
-                precision_values = precision(results, gt_labels)
-                for idx, precision_value in enumerate(precision_values.tolist()):
-                    print('precision - {} : {:.3f}'.format(self.CLASSES[idx], precision_value))
-                eval_result = {'precision': precision_values.mean().item()}
+                precision_value = precision(
+                    results,
+                    gt_labels,
+                    average=metric_options.get('average', 'macro'))
+                eval_result = {'precision': precision_value}
             elif metric == 'recall':
-                recall_values = recall(results, gt_labels)
-                for idx, recall_value in enumerate(recall_values.tolist()):
-                    print('recall - {} : {:.3f}'.format(self.CLASSES[idx], recall_value))
-                eval_result = {'recall': recall_values.mean().item()}
+                recall_value = recall(
+                    results,
+                    gt_labels,
+                    average=metric_options.get('average', 'macro'))
+                eval_result = {'recall': recall_value}
             elif metric == 'f1_score':
-                f1_score_values = f1_score(results, gt_labels)
-                for idx, f1_score_value in enumerate(f1_score_values.tolist()):
-                    print('f1_score - {} : {:.3f}'.format(self.CLASSES[idx], f1_score_value))
-                eval_result = {'f1_score': f1_score_values.mean().item()}
+                f1_score_value = f1_score(
+                    results,
+                    gt_labels,
+                    average=metric_options.get('average', 'macro'))
+                eval_result = {'f1_score': f1_score_value}
+            elif metric == 'support':
+                support_value = support(
+                    results,
+                    gt_labels,
+                    average=metric_options.get('average', 'macro'))
+                eval_result = {'support': support_value}
             eval_results.update(eval_result)
         return eval_results
