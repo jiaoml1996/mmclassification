@@ -50,7 +50,7 @@ def init_model(config, checkpoint=None, device='cuda:0', options=None):
     return model
 
 
-def inference_model(model, img):
+def inference_model(model, img, is_max=True):
     """Inference image(s) with the classifier.
 
     Args:
@@ -82,9 +82,12 @@ def inference_model(model, img):
     # forward the model
     with torch.no_grad():
         scores = model(return_loss=False, **data)
-        pred_score = np.max(scores, axis=1)[0]
-        pred_label = np.argmax(scores, axis=1)[0]
-        result = {'pred_label': pred_label, 'pred_score': float(pred_score)}
+        if is_max:
+            pred_score = np.max(scores, axis=1)[0]
+            pred_label = np.argmax(scores, axis=1)[0]
+            result = {'pred_label': pred_label, 'pred_score': float(pred_score)}
+        else:
+            return scores
     result['pred_class'] = model.CLASSES[result['pred_label']]
     return result
 

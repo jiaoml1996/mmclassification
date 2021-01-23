@@ -97,7 +97,7 @@ def main():
         if args.metric != '':
             results = dataset.evaluate(outputs, args.metric)
             for topk, acc in results.items():
-                print(f'\n{topk} accuracy: {acc:.2f}')
+                print(f'\n{topk} accuracy: {acc:.3f}')
         else:
             scores = np.vstack(outputs)
             pred_score = np.max(scores, axis=1)

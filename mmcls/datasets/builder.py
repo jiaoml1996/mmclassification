@@ -7,6 +7,7 @@ from mmcv.parallel import collate
 from mmcv.runner import get_dist_info
 from mmcv.utils import Registry, build_from_cfg
 from torch.utils.data import DataLoader
+from torch.utils.data import WeightedRandomSampler
 
 from .samplers import DistributedSampler
 
@@ -47,6 +48,7 @@ def build_dataloader(dataset,
                      shuffle=True,
                      round_up=True,
                      seed=None,
+                     oversampler_num=None,
                      **kwargs):
     """Build PyTorch DataLoader.
 
@@ -81,6 +83,11 @@ def build_dataloader(dataset,
         sampler = None
         batch_size = num_gpus * samples_per_gpu
         num_workers = num_gpus * workers_per_gpu
+
+    # print(oversampler_num)
+    # exit(0)
+    if oversampler_num:
+        sampler = WeightedRandomSampler(dataset.weight, num_samples=oversampler_num)
 
     init_fn = partial(
         worker_init_fn, num_workers=num_workers, rank=rank,

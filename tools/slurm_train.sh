@@ -2,6 +2,8 @@
 
 set -x
 
+export PYTHONPATH=`pwd`:$PYTHONPATH
+
 PARTITION=$1
 JOB_NAME=$2
 CONFIG=$3
@@ -21,4 +23,4 @@ srun -p ${PARTITION} \
     --cpus-per-task=${CPUS_PER_TASK} \
     --kill-on-bad-exit=1 \
     ${SRUN_ARGS} \
-    python -u tools/train.py ${CONFIG} --work-dir=${WORK_DIR} --launcher="slurm" ${PY_ARGS}
+    python -u tools/train.py ${CONFIG} --launcher="slurm" ${PY_ARGS}

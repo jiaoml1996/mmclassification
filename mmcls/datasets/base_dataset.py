@@ -38,6 +38,11 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
         self.pipeline = Compose(pipeline)
         self.data_infos = self.load_annotations()
         self.CLASSES = self.get_classes(classes)
+        self.weight = self.get_weight()
+        
+
+    def get_weight(self):
+        pass
 
     @abstractmethod
     def load_annotations(self):
@@ -114,7 +119,7 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
     def evaluate(self,
                  results,
                  metric='accuracy',
-                 metric_options={'topk': (1, 5)},
+                 metric_options={'topk': (1,)},
                  logger=None):
         """Evaluate the dataset.
 
@@ -128,7 +133,10 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
             dict: evaluation results
         """
         if isinstance(metric, str):
-            metrics = [metric]
+            if ',' in metric:
+                metrics = metric.split(',')
+            else:
+                metrics = [metric]
         else:
             metrics = metric
         allowed_metrics = ['accuracy', 'precision', 'recall', 'f1_score']
@@ -145,13 +153,19 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
                 acc = accuracy(results, gt_labels, topk)
                 eval_result = {f'top-{k}': a.item() for k, a in zip(topk, acc)}
             elif metric == 'precision':
-                precision_value = precision(results, gt_labels)
-                eval_result = {'precision': precision_value}
+                precision_values = precision(results, gt_labels)
+                for idx, precision_value in enumerate(precision_values.tolist()):
+                    print('precision - {} : {:.3f}'.format(self.CLASSES[idx], precision_value))
+                eval_result = {'precision': precision_values.mean().item()}
             elif metric == 'recall':
-                recall_value = recall(results, gt_labels)
-                eval_result = {'recall': recall_value}
+                recall_values = recall(results, gt_labels)
+                for idx, recall_value in enumerate(recall_values.tolist()):
+                    print('recall - {} : {:.3f}'.format(self.CLASSES[idx], recall_value))
+                eval_result = {'recall': recall_values.mean().item()}
             elif metric == 'f1_score':
-                f1_score_value = f1_score(results, gt_labels)
-                eval_result = {'f1_score': f1_score_value}
+                f1_score_values = f1_score(results, gt_labels)
+                for idx, f1_score_value in enumerate(f1_score_values.tolist()):
+                    print('f1_score - {} : {:.3f}'.format(self.CLASSES[idx], f1_score_value))
+                eval_result = {'f1_score': f1_score_values.mean().item()}
             eval_results.update(eval_result)
         return eval_results
