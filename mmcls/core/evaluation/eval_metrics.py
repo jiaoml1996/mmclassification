@@ -29,6 +29,7 @@ def calculate_confusion_matrix(pred, target):
     with torch.no_grad():
         for t, p in zip(target_label, pred_label):
             confusion_matrix[t.long(), p.long()] += 1
+    print(confusion_matrix)
     return confusion_matrix
 
 

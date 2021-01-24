@@ -162,24 +162,24 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
                     results,
                     gt_labels,
                     average=metric_options.get('average', 'macro'))
-                eval_result = {'precision': precision_value}
+                eval_result = {'precision': '{:.3f}'.format(precision_value)}
             elif metric == 'recall':
                 recall_value = recall(
                     results,
                     gt_labels,
                     average=metric_options.get('average', 'macro'))
-                eval_result = {'recall': recall_value}
+                eval_result = {'recall': '{:.3f}'.format(recall_value)}
             elif metric == 'f1_score':
                 f1_score_value = f1_score(
                     results,
                     gt_labels,
                     average=metric_options.get('average', 'macro'))
-                eval_result = {'f1_score': f1_score_value}
+                eval_result = {'f1_score': '{:.3f}'.format(f1_score_value)}
             elif metric == 'support':
                 support_value = support(
                     results,
                     gt_labels,
                     average=metric_options.get('average', 'macro'))
-                eval_result = {'support': support_value}
+                eval_result = {'support': '{:.3f}'.format(support_value)}
             eval_results.update(eval_result)
         return eval_results
