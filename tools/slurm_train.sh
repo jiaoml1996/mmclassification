@@ -3,6 +3,7 @@
 set -x
 
 export PYTHONPATH=`pwd`:$PYTHONPATH
+export PYTHONPATH=/mnt/lustre/jiaomenglei/code/medical_by/medical_detection:$PYTHONPATH
 
 PARTITION=$1
 JOB_NAME=$2

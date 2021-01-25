@@ -108,26 +108,28 @@ class LoadImageFromFile(object):
                 img = (img - min_) * dFactor
                 img[img < 0.0] = 0
                 img[img > 255] = 255
-
-            bbox = results['bbox']
-            x1, y1, x2, y2 = int(bbox[0]), int(bbox[1]), int(bbox[0]+bbox[2]), int(bbox[1]+bbox[3])
-            raw_img = img.copy()
-            patch_img = raw_img[y1:y2, x1:x2]
-
-            self.target_size = (112, 112)
             
-            patch = np.zeros(shape=self.target_size, dtype=np.float32)
-            # # 将框进行向外扩展
-            target_h = self.target_size[0]
-            target_w = self.target_size[1]
-            edge_h = target_h - (y2 - y1)
-            edge_w = target_w - (x2 - x1)
-            y1 = max(0, y1 - edge_h // 2)
-            x1 = max(0, x1 - edge_w // 2)
-            y2 = min(y2 + edge_h // 2, img.shape[0])
-            x2 = min(x2 + edge_w // 2, img.shape[1])
-            patch[:y2-y1, :x2-x1] = img[y1:y2, x1:x2]
-            img = patch
+            seed = np.random.random()
+            if seed < 0.5:
+                bbox = results['bbox']
+                x1, y1, x2, y2 = int(bbox[0]), int(bbox[1]), int(bbox[0]+bbox[2]), int(bbox[1]+bbox[3])
+                raw_img = img.copy()
+                patch_img = raw_img[y1:y2, x1:x2]
+
+                self.target_size = (112, 112)
+                
+                patch = np.zeros(shape=self.target_size, dtype=np.float32)
+                # # 将框进行向外扩展
+                target_h = self.target_size[0]
+                target_w = self.target_size[1]
+                edge_h = target_h - (y2 - y1)
+                edge_w = target_w - (x2 - x1)
+                y1 = max(0, y1 - edge_h // 2)
+                x1 = max(0, x1 - edge_w // 2)
+                y2 = min(y2 + edge_h // 2, img.shape[0])
+                x2 = min(x2 + edge_w // 2, img.shape[1])
+                patch[:y2-y1, :x2-x1] = img[y1:y2, x1:x2]
+                img = patch
             img = np.expand_dims(img, axis=2)
             imgs.append(img)
 
@@ -138,9 +140,9 @@ class LoadImageFromFile(object):
         img = np.concatenate(imgs, axis=2)
 
         # 图像归一化
-        max_ = np.max(img)
-        min_ = np.min(img)
-        img = (img - min_) / (max_ - min_)
+        # max_ = np.max(img)
+        # min_ = np.min(img)
+        # img = (img - min_) / (max_ - min_)
 
         if self.to_float32:
             img = img.astype(np.float32)

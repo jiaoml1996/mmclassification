@@ -94,7 +94,7 @@ class Medical(BaseDataset):
             
             info = {'img_prefix': self.data_prefix}
             info['img_info_list'] = {'filenames': images}
-            info['gt_label'] = np.array(gt_label, dtype=np.int64)
+            info['gt_label'] = np.asarray(gt_label, dtype=np.int64) #gt_label_
             info['bbox'] = bbox
 
             flags = []

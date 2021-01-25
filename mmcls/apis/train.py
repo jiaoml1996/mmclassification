@@ -52,6 +52,7 @@ def train_model(model,
             num_gpus=len(cfg.gpu_ids),
             dist=distributed,
             round_up=True,
+            oversampler_num=cfg.data.oversampler_num,
             seed=cfg.seed) for ds in dataset
     ]
 

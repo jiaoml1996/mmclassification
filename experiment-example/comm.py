@@ -1,14 +1,19 @@
 # model settings
 model = dict(
     type='ImageClassifier',
-    pretrained='torchvision://resnet101',
     backbone=dict(
-        type='ResNet',
-        depth=101,
+        type='ResNeXt',
         in_channels=16,
+        depth=101,
+        groups=32,
+        base_width=4,
         num_stages=4,
-        out_indices=(3, ),
-        style='pytorch'),
+        out_indices=(3,),
+        frozen_stages=1,
+        norm_cfg=dict(type='SyncBN', requires_grad=True),
+        style='pytorch',
+        dcn=dict(type='DCN', deform_groups=1, fallback_on_stride=False),
+        stage_with_dcn=(False, True, True, True)),
     neck=dict(type='GlobalAveragePooling'),
     head=dict(
         type='LinearClsHead',
@@ -18,17 +23,24 @@ model = dict(
         topk=(1,),
     ))
 
-evaluation = dict(interval=10, metric=['accuracy', 'precision', 'recall', 'f1_score'])
+
+evaluation = dict(interval=20, metric=['accuracy', 'precision', 'recall', 'f1_score'])
 
 # optimizer
-optimizer = dict(type='SGD', lr=0.045, momentum=0.9, weight_decay=0.00004)
+optimizer = dict(type='SGD', lr=0.02, momentum=0.9, weight_decay=0.0001)
+# optimizer = dict(type='Adam', lr=0.001)
 optimizer_config = dict(grad_clip=None)
 # learning policy
-lr_config = dict(policy='step', gamma=0.98, step=1)
-runner = dict(type='EpochBasedRunner', max_epochs=300)
+lr_config = dict(
+    policy='step',
+    warmup='linear',
+    warmup_iters=500,
+    warmup_ratio=0.001,
+    step=[16, 19])
+runner = dict(type='EpochBasedRunner', max_epochs=20)
 
 # checkpoint saving
-checkpoint_config = dict(interval=10)
+checkpoint_config = dict(interval=1)
 # yapf:disable
 log_config = dict(
     interval=10,

@@ -84,8 +84,6 @@ def build_dataloader(dataset,
         batch_size = num_gpus * samples_per_gpu
         num_workers = num_gpus * workers_per_gpu
 
-    # print(oversampler_num)
-    # exit(0)
     if oversampler_num:
         sampler = WeightedRandomSampler(dataset.weight, num_samples=oversampler_num)
 

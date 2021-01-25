@@ -2,14 +2,13 @@ _base_ = [
     './comm.py',
 ]
 
-dataset_type = 'Medical'
 # dataset settings
+dataset_type = 'Medical'
 train_pipeline = [
     dict(type='LoadImageFromFile', mode='train'),
+    dict(type='Resize', size=(224, 224)),
     dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
     dict(type='RandomFlip', flip_prob=0.5, direction='vertical'),
-    dict(type='RandomCrop', size=(64, 64)),
-    dict(type='Resize', size=(224, 224)),
     dict(type='ImageToTensor', keys=['img']),
     dict(type='ToTensor', keys=['gt_label']),
     dict(type='Collect', keys=['img', 'gt_label'])
@@ -36,13 +35,12 @@ data_root_test = '/mnt/lustre/jiaomenglei/code/medical_by/data/data_all/数据�
 data = dict(
     samples_per_gpu=32,
     workers_per_gpu=6,
+    oversampler_num=10000,
     train=dict(
-        type='ClassBalancedDataset',
-        oversample_thr=10,
-        dataset=dict(type=dataset_type,
-            data_prefix=data_root,
-            ann_file=data_root + '/训练索引/mri_矢状位/all_train/train.json',
-            pipeline=train_pipeline)),
+        type=dataset_type,
+        data_prefix=data_root,
+        ann_file=data_root + '/训练索引/mri_矢状位/all_train/train.json',
+        pipeline=train_pipeline),
     val=dict(
         type=dataset_type,
         data_prefix=data_root_val,
